@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚀 ציר הזמן - התפתחות מודל התא</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* עיצוב בסיסי עם נגיעות של סרקזם */
+    body {
+      font-family: 'Heebo', sans-serif;
+      font-size: 18px;
+      background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      overflow-x: hidden;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      margin: 40px 0;
+      background: linear-gradient(120deg, #2d3748, #4a5568);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      animation: fadeInDown 1.5s ease-out;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* ציר הזמן */
+    .timeline-container {
+      position: relative;
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 60px 0;
+      min-height: 100vh;
+    }
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to bottom, #3182ce, #63b3ed);
+      transform: translateX(-50%);
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(49, 130, 206, 0.3);
+    }
+    .timeline-item {
+      position: relative;
+      width: 100%;
+      margin: 80px 0;
+      height: 60px;
+      transition: all 0.3s ease;
+    }
+    .timeline-box {
+      position: absolute;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #4299e1, #667eea);
+      color: #fff;
+      padding: 16px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: auto;
+      max-width: 300px;
+      z-index: 1;
+    }
+    .timeline-box:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+      background: linear-gradient(135deg, #3182ce, #5a67d8);
+    }
+    .timeline-item:nth-of-type(odd) .timeline-box {
+      left: calc(50% + 30px);
+    }
+    .timeline-item:nth-of-type(even) .timeline-box {
+      right: calc(50% + 30px);
+    }
+    /* חלון הפתיחה (מודאל) */
+    .expanded {
+      position: fixed;
+      width: 80%;
+      height: 70%;
+      top: 50%;
+      left: 50%;
+      background: linear-gradient(165deg, #2d3748, #4a5568);
+      color: #fff;
+      font-size: 1.2rem;
+      padding: 30px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+      border-radius: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      z-index: 1000;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.95);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: none;
+    }
+    .expanded.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      display: block;
+    }
+    .expanded-title, .expanded-content {
+      padding: 20px;
+      font-size: 5rem;
+      line-height: 1.4;
+    }
+    .expanded-title h2 {
+      margin: 0;
+      font-size: 6rem;
+    }
+    /* כפתור הסגירה - הגולגולת (מקורי) */
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+    }
+    .close-btn.show { display: flex; }
+    .close-btn:hover {
+      background: rgba(255,255,255,0.4);
+    }
+    .skull-icon {
+      font-size: 67.5px; /* הגדלה פי 1.5 מ-45px */
+      pointer-events: auto; 
+      cursor: pointer;
+    }
+    /* שכבת השאלה */
+    #question-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(26,32,44,0.95);
+      padding: 30px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+      width: 80%;
+      max-width: 600px;
+      text-align: center;
+      display: none;
+      z-index: 1100;
+    }
+    #question-overlay h3 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .option-btn {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 112%;
+      max-width: 300px;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .option-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    /* אנימציית לוזר */
+    .loser-animate {
+      text-align: center;
+      font-size: 2.2rem;
+      color: #fbd38d;
+      animation: bounce 1s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+      margin-top: 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    /* הודעת טרול */
+    #troll-message {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fbd38d;
+      font-size: 1.4rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 ציר הזמן - התפתחות מודל התא</h1>
+
+  <!-- פריטי ציר הזמן -->
+  <div class="timeline-container">
+    <div class="timeline-line"></div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1590"
+              data-title="מיקרוסקופ: עיניים לעולם נסתר"
+              data-content="אז תקשיבו, באותה תקופה האחים ינסן המציאו את המיקרוסקופ הראשון!<br />זה היה כמו לקבל זוג עיניים שמעולם לא ראיתם – פתאום, עולם נסתר נחשף.<br />הכל התחיל בסקרנות מטורפת, והמדע פשוט זז למקום אחר.<br />הרבה מדברים על זה עד היום, כאילו זה היה הקפיצה הכי מגניבה."
+              data-audio="1740261600564t7rbdg8t-voicemaker.in-speech.mp3">
+        1590
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1665"
+              data-title="תא: הסוד ששינה את הכל"
+              data-content="בשנת 1665, רוברט הוק גילה את המילה &quot;תא&quot; במיקרוסקופ!<br />זה היה כאילו נפתח לכם סוד ענק של הטבע – פשוט לא יאומן.<br />החבר'ה בכיתה לא הפסיקו לדבר על זה, כאילו זה היה הדבר הכי מגניב שקורה בעולם.<br />כל מה שחשבתם עד אז, פשוט התהפך לראש אחרי זה."
+              data-audio="1740261691594stp96qlb-voicemaker.in-speech.mp3">
+        1665
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1674"
+              data-title="יצורים במים: מה מסתתר מתחת?"
+              data-content="בשנת 1674, אנטוני ואן לוונהוק גילה יצורים חד-תאיים במים!<br />תחשבו על זה – בתוך כוס מים פשוטה, עולם חדש ומפתיע.<br />החבר'ה בכיתה היו פשוט בהלם, כי מי היה מאמין שיש חיים כל כך זעירים?<br />זה היה כמו לגלות סוד קטן שהפך את כל מה שידענו על הטבע."
+              data-audio="17402618305565sz1vbuk-voicemaker.in-speech.mp3">
+        1674
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1838-1839"
+              data-title="תורת התא: הפאזל של החיים"
+              data-content="בשנים 1838-1839, תאודור שוואן ומתיאס שליידן כתבו את תורת התא.<br />הם גילו שכל יצור חי מורכב מתאים – כאילו כל דבר הוא פאזל ענקי.<br />המדע התחיל להבין את הסוד שמאחורי החיים, והכל הפך לוגי יותר.<br />זה היה כמו לקבל את המדריך הסודי לחיים, פשוט מדהים."
+              data-audio="1740261715130myobmbex9-voicemaker.in-speech.mp3">
+        1838-1839
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1855"
+              data-title="כל תא מתא: פיצוץ המוח"
+              data-content="בשנת 1855, רודולף וירכו אמר &quot;כל תא מתא&quot; – וזה פשוט הפך את כל מה שידענו.<br />הוא הסביר שכל תא נוצרים מתאים קיימים, והכל התחבר בצורה מטורפת.<br />החבר'ה בכיתה לא האמינו – זה היה כאילו כל העולם קיבל עדכון מטורף.<br />זה שינה את הדרך בה אנו מבינים את מחזור החיים."
+              data-audio="1740261896541btp2cuob-voicemaker.in-speech.mp3">
+        1855
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1931"
+              data-title="המיקרוסקופ האלקטרוני: לראות כמו חלום"
+              data-content="בשנת 1931, היינריך רוזה וארנסט רסקה המציאו את המיקרוסקופ האלקטרוני הראשון.<br />הם יכלו להגדיל עד כדי כך שכל דבר נראה כמו משהו מהחלל – פשוט מטורף.<br />זה היה כאילו קיבלתם עיניים קסומות לראות את מה שאי אפשר לדמיין.<br />המצאה זו שינתה את כללי המשחק בעולם המחקר, ממש חלום שמתגשם."
+              data-audio="17402622570449k5yt06s-voicemaker.in-speech.mp3">
+        1931
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1953"
+              data-title="DNA: הקוד הסודי"
+              data-content="בשנת 1953, ג׳יימס ווטסון ופרנסיס קריק גילו את מבנה ה-DNA.<br />תחשבו – זה היה כמו לגלות קוד סודי ששולט בכל מה שקורה בגופנו.<br />הגילוי הזה פתח דלת לעולם חדש של גנטיקה וביולוגיה, ממש כמו קסם.<br />כל החבר'ה בכיתה פשוט אמרו &quot;וואו&quot;, כי זה היה שינוי מוחלט."
+              data-audio="1740262536420kzutfxyf-voicemaker.in-speech.mp3">
+        1953
+      </button>
+    </div>
+    <div class="timeline-item">
+      <button class="timeline-box"
+              data-year="1981"
+              data-title="אנדוסימביוזה: פאזל התא"
+              data-content="בשנת 1981, לין מרגוליס הציעה את תיאוריית האנדוסימביוזה.<br />היא הסבירה איך האברונים בתאים הגיעו – כאילו כל החלקים התחברו בצורה מושלמת.<br />זה היה כמו להרכיב פאזל ענקי שבו כל חלק משתלב בדיוק במקום שלו.<br />החבר'ה בכיתה פשוט לא הפסיקו לצחוק – זה היה ממש מהפכני!"
+              data-audio="1740262579936hdc4uxqb-voicemaker.in-speech.mp3">
+        1981
+      </button>
+    </div>
+  </div>
+
+  <!-- חלון הפתיחה (מודאל) -->
+  <div id="expanded-box" class="expanded">
+    <div class="close-btn" id="close-btn">
+      <span class="skull-icon" id="skull-icon">💀</span>
+    </div>
+    <div class="expanded-title"></div>
+    <div class="expanded-content" id="expanded-content"></div>
+    <!-- שכבת השאלה -->
+    <div id="question-overlay">
+      <h3 id="question-text"></h3>
+      <div id="options-container"></div>
+    </div>
+    <!-- הודעת טרול -->
+    <div id="troll-message"></div>
+  </div>
+
+  <script>
+    /* פונקציית הקלדה (Typewriter Effect) */
+    function typeText(element, text, delay, callback) {
+      let i = 0;
+      element.innerHTML = "";
+      function type() {
+        if (i < text.length) {
+          if (text[i] === "<") {
+            let endTag = text.indexOf(">", i);
+            if (endTag !== -1) {
+              element.innerHTML += text.substring(i, endTag + 1);
+              i = endTag + 1;
+            } else {
+              element.innerHTML += text[i];
+              i++;
+            }
+          } else {
+            element.innerHTML += text[i];
+            i++;
+          }
+          setTimeout(type, delay);
+        } else if (callback) {
+          callback();
+        }
+      }
+      type();
+    }
+
+    /* ========== משתנים גלובליים ========== */
+    let currentStep = 0;
+    let currentTitle = "";
+    let currentContent = "";
+    let currentKey = "";
+    let keyListenerAdded = false;
+    let currentAudio = null; // Voice – קובץ קול (אם קיים)
+
+    let teleportInterval = null;  // עבור תנועת הטלפורט של הגולגולת
+    let hardModeTimeouts = [];    // לאחסון טיימרים במצב קושי
+    let hardModeActive = false;   // דגל למצב קושי
+    let difficultyLevel = 1;      // רמת קושי פנימית (לא מוצגת)
+
+    /* ========== נתוני השאלות ========== */
+    const questions = {
+      "1590": {
+        "question": "כיצד המצאת המיקרוסקופ חוללה שינוי בתפיסת ה'בלתי נראה' בעולם המדעי, ומהו ההיבט הקריטי שאִפשר את המעבר מתצפית אינטואיטיבית להבנה מערכתית של המבנה המיקרוסקופי?",
+        "options": [
+          "המיקרוסקופ איפשר הבחנה מדויקת במבנים תת-תאיים, ובכך הניח תשתית לגישות כמותיות חדשות להבנת תהליכים ביולוגיים מבניים ופונקציונליים.",
+          "המיקרוסקופ העצים את יכולת ההגדלה, אך הבנת המבנה המיקרוסקופי נותרה תלויה בעיקר בגישות פילוסופיות קודמות ולא הובילה לפרדיגמה חדשה.",
+          "המצאת המיקרוסקופ הביאה למהפכה טכנולוגית, אך ההבנה התאורטית של התופעות התת-מיקרוסקופיות לא השתנתה עד להופעת הגנטיקה המולקולרית.",
+          "המיקרוסקופ יצר אפשרויות תצפית חדשות אך לא השפיע על המתודולוגיות של המחקר המדעי, שנותרו מושתתות על עקרונות מאקרוסקופיים."
+        ],
+        "correct": 0
+      },
+      "1665": {
+        "question": "כיצד תרם המונח 'תא' להמשגת הארגון האורגני במערכת הביולוגית, ומהו הגורם המהותי שגרם לשינוי מהותי בהבנה של מבנה ותפקוד מערכות ביולוגיות?",
+        "options": [
+          "הגדרת התא כיחידה הבסיסית של החיים אפשרה מעבר מתיאור איכותני להבנה כמותית של הדינמיקה התאית ויחסי הגומלין בין המבנים התוך-תאיים.",
+          "הגדרת התא כיחידה בסיסית אמנם קידמה את ההבנה של ארגון אורגניזמים, אך ההשלכות של ההגדרה נותרו מוגבלות לתצפיות מבניות בלבד.",
+          "המונח 'תא' שימש בעיקר כמונח סמנטי לתיאור מבנים פנימיים ללא עדות אמפירית מספקת לשילובם במערכות ביולוגיות מורכבות.",
+          "הגדרת התא היוותה צעד חשוב בפיתוח הידע הביולוגי, אך המונח נותר חסר משמעות פרקטית במחקר הביולוגי עד להתפתחות המיקרוסקופ האלקטרוני."
+        ],
+        "correct": 0
+      },
+      "1674": {
+        "question": "כיצד גילוי האורגניזמים החד-תאיים הוביל לשינוי משמעותי בפרדיגמות המדעיות של התקופה, ומהו ההיבט התפיסתי המרכזי שהושפע מהתצפיות הללו?",
+        "options": [
+          "גילוי אורגניזמים חד-תאיים הביא להבנה מחודשת של מורכבות מבנית ברמה המיקרוסקופית, מה שהוביל לדיון מחודש בנוגע להגדרת 'חיים' במונחים ביולוגיים פונקציונליים.",
+          "למרות גילוי היצורים החד-תאיים, ההנחות המדעיות של התקופה נותרו מבוססות על עקרונות ביולוגיים מאקרוסקופיים מבלי להכיר במשמעותם של ממצאים מיקרוסקופיים.",
+          "החשיפה לאורגניזמים חד-תאיים חידדה את הצורך במתודולוגיות חדשות, אך הפרדיגמה המדעית לא השתנתה באופן ממשי עד הופעת תורת האבולוציה.",
+          "גילוי חד-תאיים הציג דילמות תאורטיות, אך מרבית החוקרים המשיכו לראות בהם חריגים למבנים הביולוגיים המקובלים ולא שינו את מודל החיים שלהם."
+        ],
+        "correct": 0
+      },
+      "1838-1839": {
+        "question": "כיצד תורת התא הגדירה מחדש את מושג הארגון הביולוגי, ומה הייתה התובנה המרכזית ששינתה את אופן החשיבה על יחידות הבסיס של החיים?",
+        "options": [
+          "תורת התא קבעה שכל היצורים החיים מורכבים מתאים כיחידות מבניות ותפקודיות, ובכך הניחה את הבסיס להבנה מערכתית של תהליכים ביולוגיים.",
+          "התיאוריה הדגישה את התצפית המבנית של תאים אך לא הצליחה לגבש גישה כוללת להסבר דינמיקות של מערכות ביולוגיות מורכבות.",
+          "הגדרת התא כיחידה בסיסית של האורגניזם אמנם תרמה להבנת מבנה החיים, אך ההשפעה שלה על התפיסה הפיזיולוגית של התא הייתה מוגבלת.",
+          "למרות תרומתה של תורת התא, התפיסה של אורגניזמים כיחידות משולבות לא השתנתה באופן מהותי עד לפיתוח הביולוגיה המולקולרית."
+        ],
+        "correct": 0
+      },
+      "1855": {
+        "question": "באיזה אופן חיזק העיקרון 'כל תא מתא' את הבנת המנגנונים של מחזור החיים הביולוגי, ומהו האופן שבו הוא השפיע על תפיסות ההתפתחות האורגנית?",
+        "options": [
+          "העיקרון אישש את ההמשכיות של התאים כחלק ממנגנוני ההתרבות והחידוש הביולוגי, תוך הדגשת הקשר בין שימור המידע התאי להתפתחות אורגניזמים.",
+          "העיקרון הצביע על כך שתהליכים תאיים מבוססים על המשכיות, אך השפעתו על הבנת ההתפתחות הביולוגית הייתה מצומצמת לתחום המיקרוסקופי בלבד.",
+          "למרות שהעיקרון מדגיש את מחזוריות התא, הבנת המנגנון המאפשר את התחדשותם נותרה מוגבלת להנחות מבניות בלבד.",
+          "ההכרה בכך שכל תא נובע מתא אחר סיפקה מסגרת מחקרית, אך לא הביאה לשינוי מהותי בגישה להבנת ההתפתחות האורגנית."
+        ],
+        "correct": 0
+      }
+    };
+
+    // לחיצה על כפתורי ציר הזמן – פותחת את המודאל ומאתחלת את קובץ הקול (Voice) במידה וקיים
+    document.querySelectorAll('.timeline-box').forEach(box => {
+      box.addEventListener('click', function() {
+        currentKey = this.dataset.year;
+        currentTitle = this.dataset.title;
+        currentContent = this.dataset.content;
+        if(this.dataset.audio){
+          currentAudio = new Audio(this.dataset.audio);
+        } else {
+          currentAudio = null;
+        }
+        openModal();
+      });
+    });
+
+    function openModal() {
+      currentStep = 0;
+      document.querySelector('.expanded-title').innerHTML = "";
+      document.querySelector('.expanded-content').innerHTML = "";
+      const expandedBox = document.getElementById('expanded-box');
+      expandedBox.classList.add('show');
+      clearHardMode();
+      hardModeActive = false;
+      const closeBtnCircle = document.getElementById('close-btn');
+      closeBtnCircle.style.position = "";
+      closeBtnCircle.style.left = "";
+      closeBtnCircle.style.top = "";
+      const skullIcon = document.getElementById('skull-icon');
+      skullIcon.style.display = 'inline';
+      skullIcon.onclick = onSkullClick;
+      if (!keyListenerAdded) {
+        document.addEventListener('keydown', spaceHandler);
+        keyListenerAdded = true;
+      }
+      closeBtnCircle.classList.add('show');
+    }
+
+    // מציג את הכותרת והתוכן בשלבים עם אפקט הקלדה
+    function spaceHandler(e) {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (currentStep === 0) {
+          typeText(document.querySelector('.expanded-title'), "<h2>" + currentTitle + "</h2>", 50, function() {
+            currentStep = 1;
+          });
+        } else if (currentStep === 1) {
+          if (currentAudio) { currentAudio.play(); }
+          typeText(document.querySelector('.expanded-content'), "<p>" + currentContent + "</p>", 50, function() {
+            currentStep = 2;
+            document.removeEventListener('keydown', spaceHandler);
+            keyListenerAdded = false;
+          });
+        }
+      }
+    }
+
+    // לחיצה על הגולגולת – אם במצב hard mode סוגרים, אחרת מציגים את החידון
+    function onSkullClick(e) {
+      e.stopPropagation();
+      const skullIcon = document.getElementById('skull-icon');
+      const trollMessageDiv = document.getElementById('troll-message');
+      if (hardModeActive) {
+        clearHardMode();
+        closeModal();
+      } else {
+        if (trollMessageDiv.style.display === 'block') {
+          trollMessageDiv.style.display = 'none';
+        }
+        difficultyLevel++;
+        showQuestionOverlay();
+      }
+    }
+
+    function showQuestionOverlay() {
+      document.querySelector('.expanded-title').style.display = 'none';
+      document.querySelector('.expanded-content').style.display = 'none';
+      const overlay = document.getElementById('question-overlay');
+      overlay.style.display = 'block';
+      const qData = questions[currentKey];
+      if (!qData) { closeModal(); return; }
+      document.getElementById('question-text').innerHTML = qData.question;
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = "";
+      // מערבבים את כל ארבע האפשרויות באופן רנדומלי
+      let opts = qData.options.slice();
+      for (let i = opts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opts[i], opts[j]] = [opts[j], opts[i]];
+      }
+      opts.forEach(optionText => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = optionText;
+        btn.onclick = () => {
+          overlay.style.display = 'none';
+          document.querySelector('.expanded-title').style.display = 'block';
+          document.querySelector('.expanded-content').style.display = 'block';
+          if (optionText === qData.options[0]) {
+            closeModal();
+          } else {
+            showLoserMessage();
+          }
+        };
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    // פונקציית הקלדה (Typewriter Effect)
+    function typeText(element, text, delay, callback) {
+      let i = 0;
+      element.innerHTML = "";
+      function type() {
+        if (i < text.length) {
+          if (text[i] === "<") {
+            let endTag = text.indexOf(">", i);
+            if (endTag !== -1) {
+              element.innerHTML += text.substring(i, endTag + 1);
+              i = endTag + 1;
+            } else {
+              element.innerHTML += text[i];
+              i++;
+            }
+          } else {
+            element.innerHTML += text[i];
+            i++;
+          }
+          setTimeout(type, delay);
+        } else if (callback) {
+          callback();
+        }
+      }
+      type();
+    }
+
+    // במקרה של תשובה שגויה – מציגים הודעת "לוזר"
+    function showLoserMessage() {
+  const messages = [
+    "לוזר, לוזר 😜",
+    "ניסיון נחמד... אבל כשלון מרהיב! 🤡",
+    "אוי לא, אולי בפעם הבאה תשתמש בקצת שכל? 🤔",
+    "פספסת! אבל אל תדאג, גם אני עושה טעויות... אה, בעצם לא. 😆",
+    "בינגו! כלומר... ההפך מבינגו. 🎯❌",
+    "קרוב... לא, בעצם לא קרוב בכלל. 😝",
+    "מישהו צריך לחזור לכיתה א' 📚😂",
+    "וואו, אפילו הברווז שלי עונה יותר טוב מזה. 🦆",
+    "אם הייתי מקבל שקל על כל טעות שלך, הייתי מיליונר עכשיו. 💸",
+    "יש לך פוטנציאל... של סלע. 🪨",
+    "אל תדאג, יש כאלה שנולדו חכמים, ויש כאלה... כמוך. 🤷‍♂️",
+    "בפעם הבאה, אולי תנסה לקרוא את השאלה לפני שעונים? 📖",
+    "וואו, זו הייתה תשובה ברמה של טוסטר מקולקל. 🍞🔥",
+    "התשובה שלך שברה לי את הלב... ואת חוקי ההיגיון. 💔🤯",
+    "בבקשה, תפסיק, אני מתחיל להרגיש מבוכה בשבילך. 😅",
+    "המורה שלך כרגע בוכה בפינה בגללך. 😭",
+    "חידה: מה דומה לך ולדלת? שניכם לא חכמים במיוחד. 🚪",
+    "לא נורא... תמיד יש קריירה בתור פח אשפה. 🗑️",
+    "מה שענית עכשיו? זה כנראה יהיה בדיחה בפסיכומטרי הבא. 🤦‍♂️",
+    "תמשיך ככה, ובקרוב יהיו לך מנוי חינם לאוניברסיטת כשלונות! 🎓❌",
+    "אני מתחיל לחשוב שאתה עושה את זה בכוונה... נכון? 🧐",
+    "שמעתי שגאונות היא עניין גנטי... כנראה שאין לך מזל. 🤷‍♀️",
+    "אולי תנסה לשאול את הכלב שלך בפעם הבאה? יש מצב שהוא יודע יותר. 🐶",
+    "כמעט! כלומר, לא באמת. אבל אני מנסה להיות נחמד. 😬"
+  ];
+  
+  const expandedBox = document.getElementById('expanded-box');
+  const loserDiv = document.createElement('div');
+  loserDiv.className = 'loser-animate';
+  loserDiv.innerHTML = messages[Math.floor(Math.random() * messages.length)];
+  expandedBox.appendChild(loserDiv);
+  
+  setTimeout(() => {
+    loserDiv.remove();
+    startHardMode();
+  }, 3000);
+}
+
+    // מצב hard mode: הגולגולת מתרוצצת בתוך חלון המודאל, והטקסט נעלם
+    function startHardMode() {
+      document.querySelector('.expanded-title').style.display = 'none';
+      document.querySelector('.expanded-content').style.display = 'none';
+      hardModeActive = true;
+      const closeBtnCircle = document.getElementById('close-btn');
+      // האטת תנועת הגולגולת - מעבר כל 700 מ"ש (לעומת 340 מ"ש קודם)
+      teleportInterval = setInterval(moveSkull, 400);
+      let timeout = setTimeout(() => {
+        clearInterval(teleportInterval);
+        teleportInterval = null;
+        hardModeActive = false;
+        showTrollMessage();
+      }, 15000);
+      hardModeTimeouts.push(timeout);
+    }
+
+    function moveSkull() {
+      const closeBtnCircle = document.getElementById('close-btn');
+      const modal = document.getElementById('expanded-box');
+      const modalWidth = modal.clientWidth;
+      const modalHeight = modal.clientHeight;
+      const circleWidth = closeBtnCircle.offsetWidth;
+      const circleHeight = closeBtnCircle.offsetHeight;
+      const maxLeft = modalWidth - circleWidth;
+      const maxTop = modalHeight - circleHeight;
+      const randomLeft = Math.random() * maxLeft;
+      const randomTop = Math.random() * maxTop;
+      closeBtnCircle.style.position = "absolute";
+      closeBtnCircle.style.left = randomLeft + "px";
+      closeBtnCircle.style.top = randomTop + "px";
+    }
+
+    function showTrollMessage() {
+      const trollMessageDiv = document.getElementById('troll-message');
+      const funnyMessages = [
+        "היי, נגמר הזמן! פשוט, תנסו שוב.",
+        "לוזר! לא הצלחתם – לנסות שוב?",
+        "עוד ניסיון, עוד כישלון – אבל אולי תצליחו הפעם.",
+        "איזה כישלון מצחיק, ממש כמו תמיד!",
+        "הניסיון שלכם... טוב, לא היה כל כך מוצלח.",
+        "אוי, לא תפסתם אותי – אולי בפעם הבאה, לוזר!",
+        "זה היה פשוט מתיחה – תנסו שוב, אם אתם מסוגלים.",
+        "הכל נגמר כאן? לא, יש עוד נסיונות לכישלון!",
+        "הכישלון שלכם הוא אומנות, אבל עדיין, נסו שוב!",
+        "טעיתם שוב – פשוט, לא נהדר, אבל ממש מצחיק.",
+        "תראו, כישלון אחר, בדיוק כמו מה שציפינו.",
+        "האמת היא, לא כולם נולדים אלופים – אתם הוכחתם זאת.",
+        "הניסיון שלכם כמעט מרשים, אם רק הייתי מצפה לכך...",
+        "אולי הפעם תצליחו? ספק לא.",
+        "הכישלון הזה הוא עוד סימן שאתם בשטח.",
+        "רק מי שלא מנסה לא נכשל – אז מה אתם עושים?",
+        "הכל מובן, כשאתם לא מצליחים לנצח אותי.",
+        "הטעות שלכם שוב נחשפה – אולי תנסו שוב?",
+        "אה, לא הפעם – תרגישו את הכישלון בגדול.",
+        "המוח שלכם קיבל הפסקה, וגם אתם עכשיו – נסו שוב.",
+        "לוזרים כמוכם פשוט עושים את זה שוב ושוב.",
+        "האומץ שלכם לנסות שוב פשוט מפתיע – או שמא מצחיק?",
+        "תתעוררו, תנסו שוב, אולי הפעם יהיה שונה.",
+        "הכישלון שלכם הוא סימן למאמץ – נסו עוד קצת.",
+        "משום מה, אתם תמיד מצליחים להפתיע אותי בכישלון.",
+        "היי, זה שוב לא הצליח – חזרו והתחילו מחדש.",
+        "אני מתרגש לראות אתכם נופלים שוב, ממש טוב.",
+        "הכישלון שלכם הוא כמו הרגל רע – לא נמאס לעולם.",
+        "עוד ניסיון כושל – טוב, לפחות אתם עקביים.",
+        "האם זו הפעם? לא, כנראה שלא – נסו שוב."
+      ];
+      const randomMessage = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
+      trollMessageDiv.textContent = randomMessage;
+      trollMessageDiv.style.display = 'block';
+    }
+
+    function clearHardMode() {
+      if (teleportInterval) {
+        clearInterval(teleportInterval);
+        teleportInterval = null;
+      }
+      hardModeTimeouts.forEach(timeout => clearTimeout(timeout));
+      hardModeTimeouts = [];
+      hardModeActive = false;
+    }
+
+    function closeModal() {
+      const expandedBox = document.getElementById('expanded-box');
+      expandedBox.classList.remove('show');
+      clearHardMode();
+      const closeBtnCircle = document.getElementById('close-btn');
+      closeBtnCircle.classList.remove('show');
+      closeBtnCircle.style.position = "";
+      closeBtnCircle.style.left = "";
+      closeBtnCircle.style.top = "";
+      if (keyListenerAdded) {
+        document.removeEventListener('keydown', spaceHandler);
+        keyListenerAdded = false;
+      }
+      if(currentAudio){
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+    }
+  </script>
+</body>
+</html>
